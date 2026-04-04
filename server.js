@@ -14,7 +14,7 @@ app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true, limit: "5mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
-mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/syncsoul")
+mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/syncsoul")
   .then(() => console.log("Connected to MongoDB"))
   .catch(err => { console.error("MongoDB connection error:", err); process.exit(1); });
 
@@ -234,4 +234,4 @@ app.delete("/api/admin/delete/:id", requireAdmin, async (req, res) => {
 
 app.listen(PORT, () => {
   console.log("SYNC SOUL server running at http://localhost:" + PORT);
-});
+}); 
