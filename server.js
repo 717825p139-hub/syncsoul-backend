@@ -234,4 +234,4 @@ app.delete("/api/admin/delete/:id", requireAdmin, async (req, res) => {
 
 app.listen(PORT, () => {
   console.log("SYNC SOUL server running at http://localhost:" + PORT);
-}); 
+});
