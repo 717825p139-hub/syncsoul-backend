@@ -16,7 +16,9 @@ app.use(express.static(path.join(__dirname, "public")));
 
 mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/syncsoul")
   .then(() => console.log("Connected to MongoDB"))
-  .catch(err => { console.error("MongoDB connection error:", err); process.exit(1); });
+  .catch(err => {
+  console.error("❌ MongoDB error:", err);
+});
 
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true, trim: true },
@@ -103,6 +105,9 @@ app.post("/api/register", async (req, res) => {
     }
   }
 );
+app.get("/", (req, res) => {
+  res.send("SYNC SOUL Backend is Running 🚀");
+});
 
 app.post("/api/verify-otp", async (req, res) => {
   try {
