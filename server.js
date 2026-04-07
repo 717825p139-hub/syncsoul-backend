@@ -1,12 +1,12 @@
 require("dotenv").config();
-const express    = require("express");
-const mongoose   = require("mongoose");
-const bcrypt     = require("bcryptjs");
-const cors       = require("cors");
+const express = require("express");
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const cors = require("cors");
 const nodemailer = require("nodemailer");
-const path       = require("path");
+const path = require("path");
 
-const app  = express();
+const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
@@ -19,19 +19,19 @@ mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/syncsoul"
   .catch(err => { console.error("MongoDB connection error:", err); process.exit(1); });
 
 const userSchema = new mongoose.Schema({
-  username : { type: String, required: true, unique: true, trim: true },
-  password : { type: String, required: true },
-  email    : { type: String, required: true, unique: true, lowercase: true, trim: true },
-  phone    : { type: String, required: true },
-  gender   : { type: String, default: "" },
-  dob      : { type: String, default: "" },
-  cast     : { type: String, default: "" },
-  salary   : { type: String, default: "" },
-  fname    : { type: String, default: "" },
-  mname    : { type: String, default: "" },
-  bio      : { type: String, default: "" },
-  photo    : { type: String, default: "" },
-  isAdmin  : { type: Boolean, default: false },
+  username: { type: String, required: true, unique: true, trim: true },
+  password: { type: String, required: true },
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  phone: { type: String, required: true },
+  gender: { type: String, default: "" },
+  dob: { type: String, default: "" },
+  cast: { type: String, default: "" },
+  salary: { type: String, default: "" },
+  fname: { type: String, default: "" },
+  mname: { type: String, default: "" },
+  bio: { type: String, default: "" },
+  photo: { type: String, default: "" },
+  isAdmin: { type: Boolean, default: false },
 }, { timestamps: true });
 
 const User = mongoose.model("User", userSchema);
@@ -49,9 +49,9 @@ const transporter = nodemailer.createTransport({
 async function sendOTPEmail(toEmail, otp) {
   await transporter.sendMail({
     from: '"SYNC SOUL" <a68bdd001@smtp-brevo.com>',
-    to      : toEmail,
-    subject : "Your SYNC SOUL OTP Code",
-    html    : "<div style='font-family:Arial;max-width:400px;margin:auto;padding:30px;background:#1a0010;border-radius:15px;color:white;'><h2 style='color:hotpink;text-align:center;'>SYNC SOUL</h2><p style='text-align:center;font-size:16px;'>Your One-Time Password:</p><div style='background:#e63973;color:white;font-size:36px;font-weight:bold;text-align:center;padding:20px;border-radius:10px;letter-spacing:8px;'>" + otp + "</div><p style='text-align:center;color:#aaa;margin-top:15px;'>Expires in 5 minutes. Do not share this code.</p></div>",
+    to: toEmail,
+    subject: "Your SYNC SOUL OTP Code",
+    html: "<div style='font-family:Arial;max-width:400px;margin:auto;padding:30px;background:#1a0010;border-radius:15px;color:white;'><h2 style='color:hotpink;text-align:center;'>SYNC SOUL</h2><p style='text-align:center;font-size:16px;'>Your One-Time Password:</p><div style='background:#e63973;color:white;font-size:36px;font-weight:bold;text-align:center;padding:20px;border-radius:10px;letter-spacing:8px;'>" + otp + "</div><p style='text-align:center;color:#aaa;margin-top:15px;'>Expires in 5 minutes. Do not share this code.</p></div>",
   });
 }
 
@@ -92,24 +92,25 @@ app.post("/api/register", async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     otpStore.set(email.toLowerCase(), {
       otp,
-      expires     : Date.now() + 5 * 60 * 1000,
-      pendingUser : { username, password: hashedPassword, email: email.toLowerCase(), phone, gender, dob, cast, salary, fname, mname, bio, photo: photo || "" }
+      expires: Date.now() + 5 * 60 * 1000,
+      pendingUser: { username, password: hashedPassword, email: email.toLowerCase(), phone, gender, dob, cast, salary, fname, mname, bio, photo: photo || "" }
     });
     await sendOTPEmail(email, otp);
     res.json({ message: "OTP sent to your email." });
   } catch (err) {
-    console.error("Register error:", err);
-    res.status(500).json({ error: "Server error. Please try again." });
+      console.error("FULL ERROR:", err);
+      res.status(500).json({ error: err.message });
+    }
   }
-});
+);
 
 app.post("/api/verify-otp", async (req, res) => {
   try {
     const { email, otp } = req.body;
     const entry = otpStore.get(email.toLowerCase());
-    if (!entry)                   return res.status(400).json({ error: "No OTP found. Please register again." });
+    if (!entry) return res.status(400).json({ error: "No OTP found. Please register again." });
     if (isExpired(entry.expires)) { otpStore.delete(email.toLowerCase()); return res.status(400).json({ error: "OTP expired. Please register again." }); }
-    if (entry.otp !== otp)        return res.status(400).json({ error: "Invalid OTP." });
+    if (entry.otp !== otp) return res.status(400).json({ error: "Invalid OTP." });
     const user = new User(entry.pendingUser);
     try {
       await user.save();
@@ -149,13 +150,13 @@ app.post("/api/forgot-password", async (req, res) => {
     const { username, email } = req.body;
     if (!username || !email) return res.status(400).json({ error: "Username and email required." });
     const user = await User.findOne({ username: { $regex: new RegExp("^" + username + "$", "i") } });
-    if (!user)                              return res.status(404).json({ error: "User not found." });
+    if (!user) return res.status(404).json({ error: "User not found." });
     if (user.email !== email.toLowerCase()) return res.status(400).json({ error: "Email does not match." });
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     otpStore.set("reset_" + email.toLowerCase(), {
       otp,
-      expires  : Date.now() + 5 * 60 * 1000,
-      username : user.username
+      expires: Date.now() + 5 * 60 * 1000,
+      username: user.username
     });
     await sendOTPEmail(email, otp);
     res.json({ message: "OTP sent to your email." });
@@ -168,11 +169,11 @@ app.post("/api/forgot-password", async (req, res) => {
 app.post("/api/reset-password", async (req, res) => {
   try {
     const { email, otp, newPassword } = req.body;
-    const key   = "reset_" + email.toLowerCase();
+    const key = "reset_" + email.toLowerCase();
     const entry = otpStore.get(key);
-    if (!entry)                   return res.status(400).json({ error: "No reset request found. Please start again." });
+    if (!entry) return res.status(400).json({ error: "No reset request found. Please start again." });
     if (isExpired(entry.expires)) { otpStore.delete(key); return res.status(400).json({ error: "OTP expired." }); }
-    if (entry.otp !== otp)        return res.status(400).json({ error: "Invalid OTP." });
+    if (entry.otp !== otp) return res.status(400).json({ error: "Invalid OTP." });
     if (!newPassword || newPassword.length < 6) return res.status(400).json({ error: "Password must be at least 6 characters." });
     const hashed = await bcrypt.hash(newPassword, 10);
     await User.findOneAndUpdate({ username: entry.username }, { password: hashed });
@@ -207,10 +208,10 @@ app.get("/api/photo/:id", async (req, res) => {
 function requireAdmin(req, res, next) {
   const adminUser = req.headers["x-admin-user"];
   if (!adminUser) return res.status(403).json({ error: "Forbidden." });
-  User.findOne({ username: adminUser, isAdmin: true }).then(function(u) {
+  User.findOne({ username: adminUser, isAdmin: true }).then(function (u) {
     if (!u) return res.status(403).json({ error: "Forbidden." });
     next();
-  }).catch(function() { res.status(500).json({ error: "Server error." }); });
+  }).catch(function () { res.status(500).json({ error: "Server error." }); });
 }
 
 app.get("/api/admin/users", requireAdmin, async (req, res) => {
