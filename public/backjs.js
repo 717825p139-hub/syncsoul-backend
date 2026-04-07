@@ -111,7 +111,7 @@ function login() {
         sessionStorage.setItem("isAdmin", r.data.isAdmin ? "true" : "false");
         // Redirect based on role
         if (r.data.isAdmin) {
-            window.location.href = "admin.html";
+            window.location.href = "Admin.html";
         } else {
             window.location.href = "home.html";
         }
