@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt   = require("bcryptjs");
 
-mongoose.connect("mongodb://localhost:27017/syncsoul").then(async () => {
+mongoose.connect("mongodb+srv://717825p139_db_user:Pranav123@pranavrk.hjteqaq.mongodb.net/syncsoul?appName=Pranavrk").then(async () => {
   const db   = mongoose.connection.collection("users");
   const deleted = await db.deleteMany({ username: "admin" });
   console.log("Deleted admin accounts:", deleted.deletedCount);
