@@ -16,9 +16,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/syncsoul")
   .then(() => console.log("Connected to MongoDB"))
-  .catch(err => {
-  console.error("❌ MongoDB error:", err);
-});
+  .catch(err => { console.error("❌ MongoDB error:", err); });
 
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true, trim: true },
