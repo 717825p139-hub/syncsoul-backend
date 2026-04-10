@@ -33,20 +33,8 @@ const userSchema = new mongoose.Schema({
   photo: { type: String, default: "" },
   isAdmin: { type: Boolean, default: false },
 }, { timestamps: true });
-
-
 const User = mongoose.model("User", userSchema);
 const otpStore = new Map();
-const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
 async function sendOTPEmail(toEmail, otp) {
   await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
