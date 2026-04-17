@@ -41,19 +41,33 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model("User", userSchema);
 const otpStore = new Map();
 async function sendOTPEmail(toEmail, otp) {
-  await fetch("https://api.brevo.com/v3/smtp/email", {
-    method: "POST",
-    headers: {
-      "api-key": process.env.BREVO_API_KEY,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      sender: { name: "SYNC SOUL", email: "sirpranav08@gmail.com" },
-      to: [{ email: toEmail }],
-      subject: "Your SYNC SOUL OTP Code",
-      htmlContent: "<div style='font-family:Arial;max-width:400px;margin:auto;padding:30px;background:#1a0010;border-radius:15px;color:white;'><h2 style='color:hotpink;text-align:center;'>SYNC SOUL</h2><p style='text-align:center;font-size:16px;'>Your One-Time Password:</p><div style='background:#e63973;color:white;font-size:36px;font-weight:bold;text-align:center;padding:20px;border-radius:10px;letter-spacing:8px;'>" + otp + "</div><p style='text-align:center;color:#aaa;margin-top:15px;'>Expires in 5 minutes. Do not share this code.</p></div>"
-    })
-  });
+  try {
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "api-key": process.env.BREVO_API_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        sender: { name: "SYNC SOUL", email: "sirpranav08@gmail.com" },
+        to: [{ email: toEmail }],
+        subject: "Your SYNC SOUL OTP Code",
+        htmlContent: `<h2>Your OTP is: ${otp}</h2>`
+      })
+    });
+
+    const data = await response.json();
+
+    console.log("📩 Brevo response:", data);
+
+    if (!response.ok) {
+      throw new Error("Brevo failed: " + JSON.stringify(data));
+    }
+
+  } catch (err) {
+    console.error("❌ Brevo Error:", err.message);
+    throw err;
+  }
 }
 
 function isExpired(expires) {
