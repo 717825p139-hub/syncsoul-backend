@@ -14,10 +14,14 @@ app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true, limit: "5mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
-mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/syncsoul", {
-  tls: true,
-  tlsAllowInvalidCertificates: false,
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 })
+.then(() => console.log("✅ MongoDB Connected"))
+.catch(err => {
+  console.error("❌ MongoDB Connection Error:", err);
+});
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true, trim: true },
   password: { type: String, required: true },
