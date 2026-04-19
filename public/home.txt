@@ -1,0 +1,60 @@
+// home.js
+(function() {
+    var currentUser = sessionStorage.getItem("loggedInUser");
+    if (!currentUser) { window.location.href = "login.html"; return; }
+
+    var welcomeEl = document.getElementById("welcomeMsg");
+    if (welcomeEl) welcomeEl.textContent = currentUser;
+
+    function sanitize(str) {
+        if (!str) return "";
+        return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+    }
+
+    function calculateAge(dob) {
+        if (!dob) return "N/A";
+        return Math.floor((Date.now() - new Date(dob).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+    }
+
+    function loadPhoto(userId) {
+        fetch(API + "/photo/" + userId)
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                var img = document.getElementById("img-" + userId);
+                if (img && d.photo && d.photo.startsWith("data:image")) img.src = d.photo;
+            }).catch(function() {});
+    }
+
+    fetch(API + "/profiles")
+        .then(function(res) { return res.json(); })
+        .then(function(profiles) {
+            var container = document.getElementById("profileContainer");
+            if (!profiles || profiles.length === 0) {
+                container.innerHTML = '<div class="col-12 empty-state">💔 No profiles yet. Be the first to register!</div>';
+                return;
+            }
+            container.innerHTML = profiles.map(function(user) {
+                var age = calculateAge(user.dob);
+                var name = sanitize((user.fname ? user.fname + " " : "") + user.username);
+                return '<div class="col-sm-6 col-md-4 col-xl-3">' +
+                    '<div class="profile-card">' +
+                    '<img id="img-' + user._id + '" src="https://via.placeholder.com/300x190?text=..." alt="Photo">' +
+                    '<div class="card-body">' +
+                    '<h5>' + name + '</h5>' +
+                    '<div class="profile-meta"><i class="bi bi-calendar3"></i>Age: ' + age + '</div>' +
+                    '<div class="profile-meta"><i class="bi bi-gender-ambiguous"></i>' + sanitize(user.gender || "N/A") + '</div>' +
+                    '<div class="profile-meta"><i class="bi bi-currency-rupee"></i>' + (user.salary ? sanitize(user.salary) : "N/A") + '</div>' +
+                    '<div class="profile-bio">' + sanitize(user.bio || "No bio") + '</div>' +
+                    '<button class="btn-contact" onclick="window.location.href=\'mailto:' + sanitize(user.email) + '\'"><i class="bi bi-envelope-fill"></i> Contact</button>' +
+                    '</div></div></div>';
+            }).join('');
+
+            profiles.forEach(function(user, i) {
+                setTimeout(function() { loadPhoto(user._id); }, i * 300);
+            });
+        })
+        .catch(function() {
+            document.getElementById("profileContainer").innerHTML =
+                '<div class="col-12 empty-state">Could not load profiles.</div>';
+        });
+})();
